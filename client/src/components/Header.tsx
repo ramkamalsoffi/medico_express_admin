@@ -1,9 +1,7 @@
-import { useAuth } from '../hooks/useAuth';
 import { Search, Plus, Bell, Settings } from 'lucide-react';
+import UserProfileDropdown from './UserProfileDropdown';
 
 function Header() {
-  const { user } = useAuth();
-
   return (
     <header className="bg-white shadow-sm border-b border-gray-200 sticky top-0 z-50">
       <div className="px-6 py-3">
@@ -57,15 +55,8 @@ function Header() {
               <Settings className="w-5 h-5 text-gray-700" />
             </button>
 
-            {/* User Profile */}
-            <div className="flex items-center gap-2 pl-4 border-l border-gray-200">
-              <img
-                src="https://ui-avatars.com/api/?name=Stebin+Ben&background=3b82f6&color=fff"
-                alt="User"
-                className="w-9 h-9 rounded-full"
-              />
-              <span className="text-sm font-semibold text-gray-900">{user?.name || 'Stebin Ben'}</span>
-            </div>
+            {/* User Profile Dropdown */}
+            <UserProfileDropdown />
           </div>
         </div>
       </div>
@@ -74,4 +65,6 @@ function Header() {
 }
 
 export default Header;
+
+
 

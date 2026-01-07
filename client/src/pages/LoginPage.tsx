@@ -1,12 +1,14 @@
 import { useState } from 'react';
 import { useAuth } from '../hooks/useAuth';
 import { Mail, Lock, Eye, EyeOff, AlertCircle } from 'lucide-react';
+import ForgotPasswordModal from '../components/ForgotPasswordModal';
 
 function LoginPage() {
   const [username, setUsername] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [isForgotPasswordOpen, setIsForgotPasswordOpen] = useState(false);
   const { login, isLoading } = useAuth();
 
   // Static credentials for auto-fill
@@ -128,9 +130,13 @@ function LoginPage() {
                   <label htmlFor="password" className="block text-sm font-semibold text-gray-700">
                     Password
                   </label>
-                  <a href="#" className="text-sm text-blue-600 hover:text-blue-700 font-medium">
+                  <button
+                    type="button"
+                    onClick={() => setIsForgotPasswordOpen(true)}
+                    className="text-sm text-blue-600 hover:text-blue-700 font-medium"
+                  >
                     Forgot Password?
-                  </a>
+                  </button>
                 </div>
                 <div className="relative">
                   <div className="absolute inset-y-0 left-0 pl-4 flex items-center pointer-events-none">
@@ -262,8 +268,15 @@ function LoginPage() {
           </div>
         </div>
       </div>
+
+      {/* Forgot Password Modal */}
+      <ForgotPasswordModal
+        isOpen={isForgotPasswordOpen}
+        onClose={() => setIsForgotPasswordOpen(false)}
+      />
     </div>
   );
 }
 
 export default LoginPage;
+
