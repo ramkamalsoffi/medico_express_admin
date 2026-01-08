@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import { Popover, Transition } from '@headlessui/react';
-import { Download, Plus, Search, Pencil, Trash2, X, Filter, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Download, Plus, Search, Pencil, Trash2, X, Filter, Eye, Upload } from 'lucide-react';
 import { customerApi, Customer, CreateCustomerDto } from '../services/customerApi';
+import Pagination from '../components/Pagination';
 
 function CustomerPage() {
     const [customers, setCustomers] = useState<Customer[]>([]);
@@ -11,6 +12,7 @@ function CustomerPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0); // Added total
     const [currentPage, setCurrentPage] = useState(1);
     const [limit] = useState(10);
 
@@ -21,6 +23,7 @@ function CustomerPage() {
 
     const [editingId, setEditingId] = useState<string | null>(null);
     const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+    const [selectedFile, setSelectedFile] = useState<File | null>(null);
 
     const initialForm: CreateCustomerDto = {
         code: '',
@@ -44,6 +47,7 @@ function CustomerPage() {
             const response = await customerApi.getAll(page, limit, search, sort);
             setCustomers(response?.data || []);
             setTotalPages(response?.meta?.totalPages || 1);
+            setTotal(response?.meta?.total || 0);
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch customers', error);
@@ -68,14 +72,25 @@ function CustomerPage() {
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
         try {
+            let customerId = editingId;
+            let response;
+
             if (editingId) {
-                await customerApi.update(editingId, formData);
+                response = await customerApi.update(editingId, formData);
             } else {
-                await customerApi.create(formData);
+                response = await customerApi.create(formData);
+                customerId = response.id;
             }
+
+            // Upload image if selected
+            if (selectedFile && customerId) {
+                await customerApi.uploadImage(customerId, selectedFile);
+            }
+
             setShowModal(false);
             setFormData(initialForm);
             setEditingId(null);
+            setSelectedFile(null);
             fetchCustomers(currentPage, searchTerm, sortBy);
         } catch (error) {
             console.error('Error saving customer:', error);
@@ -99,6 +114,7 @@ function CustomerPage() {
             image: customer.image || '',
         });
         setEditingId(customer.id);
+        setSelectedFile(null); // Reset file on edit open
         setShowModal(true);
     };
 
@@ -129,19 +145,24 @@ function CustomerPage() {
         }
     };
 
+    const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        if (e.target.files && e.target.files[0]) {
+            setSelectedFile(e.target.files[0]);
+        }
+    };
+
     const columns = [
+        { key: 'image', label: 'IMAGE' },
         { key: 'code', label: 'CODE' },
-        { key: 'deliveryType', label: 'DELIVERY' },
-        { key: 'customerType', label: 'TYPE' },
         { key: 'name', label: 'NAME' },
-        { key: 'address', label: 'ADDRESS' },
-        { key: 'deliveryAddress', label: 'DELIVERY ADDRESS' },
-        { key: 'pincode', label: 'PINCODE' },
         { key: 'phone', label: 'MOBILE NO' },
         { key: 'email', label: 'MAIL ID' },
+        { key: 'deliveryType', label: 'DELIVERY' },
+        { key: 'customerType', label: 'TYPE' },
+        { key: 'address', label: 'ADDRESS' },
+        { key: 'pincode', label: 'PINCODE' },
         { key: 'reference', label: 'REFERENCE' },
         { key: 'remark', label: 'REMARK' },
-        { key: 'image', label: 'IMAGE' },
     ];
 
     return (
@@ -157,6 +178,7 @@ function CustomerPage() {
                                 onClick={() => {
                                     setFormData(initialForm);
                                     setEditingId(null);
+                                    setSelectedFile(null);
                                     setShowModal(true);
                                 }}
                                 className="flex items-center gap-2 px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 transition-colors"
@@ -266,18 +288,33 @@ function CustomerPage() {
                                             ) : (
                                                 customers.map((customer) => (
                                                     <tr key={customer.id} className="hover:bg-gray-50">
-                                                        <td className="px-6 py-4 text-sm text-gray-900">{customer.code}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.deliveryType}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.customerType}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-900">{customer.name}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{customer.address}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs">{customer.deliveryAddress}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.pincode}</td>
+                                                        <td className="px-6 py-4 text-sm">
+                                                            {customer.image ? (
+                                                                <img
+                                                                    src={customer.image}
+                                                                    alt={customer.name}
+                                                                    className="w-10 h-10 rounded-full object-cover border border-gray-200"
+                                                                />
+                                                            ) : (
+                                                                <div className="w-10 h-10 rounded-full bg-gray-100 flex items-center justify-center text-gray-500 text-xs font-semibold">
+                                                                    NO IMG
+                                                                </div>
+                                                            )}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-900">{customer.code || '-'}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-900 font-medium">{customer.name}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-500">{customer.phone}</td>
                                                         <td className="px-6 py-4 text-sm text-gray-500">{customer.email || '-'}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.reference}</td>
-                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.remark}</td>
-                                                        <td className="px-6 py-4 text-sm text-blue-500 truncate max-w-[150px]">{customer.image}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.deliveryType || '-'}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.customerType || '-'}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-xs" title={customer.address}>
+                                                            {customer.address}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.pincode || '-'}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{customer.reference || '-'}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500 truncate max-w-[150px]" title={customer.remark}>
+                                                            {customer.remark || '-'}
+                                                        </td>
                                                         <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
                                                             <div className="flex items-center justify-end gap-2">
                                                                 <button
@@ -314,27 +351,14 @@ function CustomerPage() {
                                 </div>
 
                                 {/* Pagination */}
-                                <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
-                                    <div className="text-sm text-gray-700">
-                                        Page {currentPage} of {totalPages}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                            disabled={currentPage === 1}
-                                            className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    total={total}
+                                    limit={limit}
+                                    onPageChange={setCurrentPage}
+                                    loading={loading}
+                                />
                             </div>
                         </div>
                     </div>
@@ -438,15 +462,36 @@ function CustomerPage() {
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
                                     />
                                 </div>
-                                <div>
-                                    <label className="block text-sm font-medium text-gray-700 mb-1">Image (URL)</label>
-                                    <input
-                                        type="text"
-                                        value={formData.image}
-                                        onChange={(e) => setFormData({ ...formData, image: e.target.value })}
-                                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                    />
+                                <div className="md:col-span-3 border-t border-gray-100 pt-3 mt-1">
+                                    <label className="block text-sm font-medium text-gray-700 mb-2">Profile Image</label>
+                                    <div className="flex items-center gap-4">
+                                        {(selectedFile || formData.image) && (
+                                            <div className="relative w-16 h-16 rounded-full overflow-hidden border border-gray-200">
+                                                <img
+                                                    src={selectedFile ? URL.createObjectURL(selectedFile) : formData.image}
+                                                    alt="Preview"
+                                                    className="w-full h-full object-cover"
+                                                />
+                                            </div>
+                                        )}
+                                        <div className="flex-1">
+                                            <label className="cursor-pointer inline-flex items-center gap-2 px-4 py-2 border border-gray-300 rounded-lg bg-white hover:bg-gray-50 text-sm font-medium text-gray-700 text-center w-full justify-center lg:w-auto">
+                                                <Upload className="w-4 h-4" />
+                                                {selectedFile ? 'Change Image' : 'Upload Image'}
+                                                <input
+                                                    type="file"
+                                                    className="hidden"
+                                                    accept="image/*"
+                                                    onChange={handleFileChange}
+                                                />
+                                            </label>
+                                            {selectedFile && (
+                                                <span className="ml-3 text-sm text-gray-500">{selectedFile.name}</span>
+                                            )}
+                                        </div>
+                                    </div>
                                 </div>
+
                                 <div className="md:col-span-3">
                                     <label className="block text-sm font-medium text-gray-700 mb-1">Address*</label>
                                     <textarea
@@ -454,7 +499,7 @@ function CustomerPage() {
                                         value={formData.address}
                                         onChange={(e) => setFormData({ ...formData, address: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        rows={3}
+                                        rows={2}
                                     />
                                 </div>
                                 <div className="md:col-span-3">
@@ -463,7 +508,7 @@ function CustomerPage() {
                                         value={formData.deliveryAddress}
                                         onChange={(e) => setFormData({ ...formData, deliveryAddress: e.target.value })}
                                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500"
-                                        rows={3}
+                                        rows={2}
                                     />
                                 </div>
                             </div>
@@ -472,14 +517,16 @@ function CustomerPage() {
                                     type="button"
                                     onClick={() => setShowModal(false)}
                                     className="px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50 border border-gray-300 rounded-lg"
+                                    disabled={loading}
                                 >
                                     Cancel
                                 </button>
                                 <button
                                     type="submit"
-                                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600"
+                                    className="px-4 py-2 text-sm font-semibold text-white bg-blue-500 rounded-lg hover:bg-blue-600 disabled:bg-blue-300"
+                                    disabled={loading}
                                 >
-                                    {editingId ? 'Update Customer' : 'Create Customer'}
+                                    {loading ? 'Saving...' : (editingId ? 'Update Customer' : 'Create Customer')}
                                 </button>
                             </div>
                         </form>
@@ -497,18 +544,27 @@ function CustomerPage() {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        <div className="p-6 space-y-4">
-                            <div className="grid grid-cols-1 gap-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <div>
-                                        <h4 className="text-sm font-medium text-gray-500">Code</h4>
-                                        <p className="text-base text-gray-900 mt-1">{selectedCustomer.code || '-'}</p>
+                        <div className="p-6 space-y-6">
+                            {/* Profile Header */}
+                            <div className="flex items-center gap-4">
+                                {selectedCustomer.image ? (
+                                    <img
+                                        src={selectedCustomer.image}
+                                        alt={selectedCustomer.name}
+                                        className="w-20 h-20 rounded-full object-cover border-2 border-white shadow-md"
+                                    />
+                                ) : (
+                                    <div className="w-20 h-20 rounded-full bg-blue-100 flex items-center justify-center text-blue-500 text-xl font-bold border-2 border-white shadow-md">
+                                        {selectedCustomer.name.charAt(0).toUpperCase()}
                                     </div>
-                                    <div>
-                                        <h4 className="text-sm font-medium text-gray-500">Name</h4>
-                                        <p className="text-base text-gray-900 mt-1">{selectedCustomer.name}</p>
-                                    </div>
+                                )}
+                                <div>
+                                    <h2 className="text-xl font-bold text-gray-900">{selectedCustomer.name}</h2>
+                                    <p className="text-sm text-gray-500">{selectedCustomer.code || 'No Code'}</p>
                                 </div>
+                            </div>
+
+                            <div className="grid grid-cols-1 gap-4">
                                 <div className="grid grid-cols-2 gap-4">
                                     <div>
                                         <h4 className="text-sm font-medium text-gray-500">Mobile No</h4>

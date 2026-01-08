@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from '../../components/Header';
 import Sidebar from '../../components/Sidebar';
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileSpreadsheet, Filter, Search } from 'lucide-react';
+import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileSpreadsheet, Filter, Search, Download } from 'lucide-react';
 import { Popover, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import hsnApi, { HSNMaster, CreateHSNDto } from '../../services/hsnApi';
+import { exportMasterData } from '../../utils/export';
+import Pagination from '../../components/Pagination';
 
 function HSNCreationPage() {
     const [data, setData] = useState<HSNMaster[]>([]);
@@ -161,7 +163,7 @@ function HSNCreationPage() {
             const result = await hsnApi.uploadExcel(selectedFile);
             setUploadResult(result);
             if (result.success > 0) {
-                 fetchData(currentPage, debouncedSearch, sortBy); // Refresh data
+                fetchData(currentPage, debouncedSearch, sortBy); // Refresh data
             }
         } catch (error: any) {
             console.error('Upload failed:', error);
@@ -203,9 +205,9 @@ function HSNCreationPage() {
                             </div>
                         </div>
 
-                         {/* Data Table */}
+                        {/* Data Table */}
                         <div className="bg-white rounded-lg shadow-sm border border-gray-200">
-                             <div className="p-6">
+                            <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2">
                                         {/* Filter Popover */}
@@ -265,90 +267,85 @@ function HSNCreationPage() {
                                                 className="pl-9 pr-3 py-2 text-sm border border-gray-200 rounded-lg w-64 focus:outline-none focus:ring-2 focus:ring-blue-500"
                                             />
                                         </div>
+
+                                        <button
+                                            className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
+                                            title="Export to CSV"
+                                            onClick={() => exportMasterData(data, 'hsn', [
+                                                { key: 'hsnCode', header: 'HSN Code' },
+                                                { key: 'description', header: 'Description' },
+                                                { key: 'gstRate', header: 'GST Rate (%)' },
+                                                { key: 'createdAt', header: 'Created At' },
+                                            ])}
+                                        >
+                                            <Download className="w-5 h-5" />
+                                        </button>
                                     </div>
                                 </div>
-                            <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">S.NO</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">HSN CODE</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">DESCRIPTION</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">GST RATE (%)</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">ACTION</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {loading ? (
+                                <div className="overflow-x-auto">
+                                    <table className="w-full">
+                                        <thead className="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">S.NO</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">HSN CODE</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">DESCRIPTION</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">GST RATE (%)</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">ACTION</th>
                                             </tr>
-                                        ) : !data || data.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No HSN codes found</td>
-                                            </tr>
-                                        ) : (
-                                            data.map((item, index) => (
-                                                <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                                    <td className="px-4 py-3 text-sm text-gray-700">{(currentPage - 1) * limit + index + 1}</td>
-                                                    <td className="px-4 py-3 text-sm text-gray-900 font-medium">{item.hsnCode}</td>
-                                                    <td className="px-4 py-3 text-sm text-gray-700">{item.description || '-'}</td>
-                                                    <td className="px-4 py-3 text-sm text-gray-700">{item.gstRate ? `${item.gstRate}%` : '-'}</td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => handleEdit(item)}
-                                                                className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors"
-                                                                title="Edit"
-                                                            >
-                                                                <Edit className="w-3 h-3" />
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDelete(item.id)}
-                                                                className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
-                                                                title="Delete"
-                                                            >
-                                                                <Trash2 className="w-3 h-3" />
-                                                                Delete
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                        </thead>
+                                        <tbody>
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">Loading...</td>
                                                 </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
+                                            ) : !data || data.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={5} className="px-4 py-8 text-center text-gray-500">No HSN codes found</td>
+                                                </tr>
+                                            ) : (
+                                                data.map((item, index) => (
+                                                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{(currentPage - 1) * limit + index + 1}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-900 font-medium">{item.hsnCode}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{item.description || '-'}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{item.gstRate ? `${item.gstRate}%` : '-'}</td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleEdit(item)}
+                                                                    className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors"
+                                                                    title="Edit"
+                                                                >
+                                                                    <Edit className="w-3 h-3" />
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(item.id)}
+                                                                    className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
+                                                                    title="Delete"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
                             </div>
-                        </div>
 
                             {/* Pagination */}
-                            {!loading && data.length > 0 && (
-                                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-                                    <div className="text-sm text-gray-700">
-                                        Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, total)} of {total} entries
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => fetchData(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                            Previous
-                                        </button>
-                                        <span className="text-sm text-gray-700">Page {currentPage} of {totalPages}</span>
-                                        <button
-                                            onClick={() => fetchData(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Next
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
-                            )}
+                            <Pagination
+                                currentPage={currentPage}
+                                totalPages={totalPages}
+                                total={total}
+                                limit={limit}
+                                onPageChange={setCurrentPage}
+                                loading={loading}
+                            />
                         </div>
                     </div>
                 </main>
@@ -429,13 +426,13 @@ function HSNCreationPage() {
                                 <X className="w-5 h-5" />
                             </button>
                         </div>
-                        
+
                         {!uploadResult ? (
                             <div className="space-y-4">
                                 <div className="p-4 border-2 border-dashed border-gray-300 rounded-lg bg-gray-50 text-center">
                                     <FileSpreadsheet className="w-12 h-12 text-gray-400 mx-auto mb-2" />
                                     <p className="text-sm text-gray-600 mb-2">
-                                        Upload Excel file with columns: <br/>
+                                        Upload Excel file with columns: <br />
                                         <span className="font-mono text-xs">HSN Code, Description, GST Rate</span>
                                     </p>
                                     <input
@@ -446,7 +443,7 @@ function HSNCreationPage() {
                                         className="text-sm text-gray-500 file:mr-4 file:py-2 file:px-4 file:rounded-full file:border-0 file:text-sm file:font-semibold file:bg-blue-50 file:text-blue-700 hover:file:bg-blue-100"
                                     />
                                 </div>
-                                
+
                                 {selectedFile && (
                                     <div className="text-sm text-gray-500">
                                         Selected: {selectedFile.name}
@@ -489,7 +486,7 @@ function HSNCreationPage() {
                                         <div className="max-h-40 overflow-y-auto bg-gray-50 p-2 rounded text-xs border border-gray-200">
                                             {uploadResult.errors.map((err: any, idx: number) => (
                                                 <div key={idx} className="mb-1 pb-1 border-b border-gray-100 last:border-0 text-gray-700">
-                                                    row: {JSON.stringify(err.row).substring(0, 50)}... <br/>
+                                                    row: {JSON.stringify(err.row).substring(0, 50)}... <br />
                                                     <span className="text-red-500">{err.error}</span>
                                                 </div>
                                             ))}

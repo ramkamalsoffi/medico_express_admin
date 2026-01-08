@@ -13,7 +13,7 @@ export interface Employee {
     // Relations
     branch?: { name: string };
     department?: { name: string };
-    
+
     createdAt?: string;
 }
 
@@ -27,7 +27,7 @@ export interface CreateEmployeeDto {
     departmentId?: string;
 }
 
-export interface UpdateEmployeeDto extends Partial<CreateEmployeeDto> {}
+export interface UpdateEmployeeDto extends Partial<CreateEmployeeDto> { }
 
 export interface PaginatedEmployee {
     data: Employee[];
@@ -41,9 +41,13 @@ export interface PaginatedEmployee {
 
 export const employeeApi = {
     getAll: async (page = 1, limit = 10, search = '', sortBy = ''): Promise<PaginatedEmployee> => {
-        const response = await apiClient.get('/employees', {
-            params: { page, limit, search, sortBy }
-        });
+        const params: any = { page, limit };
+
+        // Only include search and sortBy if they have values
+        if (search) params.search = search;
+        if (sortBy) params.sortBy = sortBy;
+
+        const response = await apiClient.get('/employees', { params });
         return response.data;
     },
 

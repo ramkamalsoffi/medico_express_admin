@@ -4,6 +4,8 @@ import Sidebar from '../../components/Sidebar';
 import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Search, Filter, Download } from 'lucide-react';
 import { Popover, Transition } from '@headlessui/react';
 import categoryMasterApi, { CategoryMaster, CreateCategoryMasterDto } from '../../services/categoryMasterApi';
+import { exportMasterData } from '../../utils/export';
+import Pagination from '../../components/Pagination';
 
 function CategoryCreationPage() {
     const [data, setData] = useState<CategoryMaster[]>([]);
@@ -203,89 +205,75 @@ function CategoryCreationPage() {
 
                                     <button
                                         className="p-2 text-blue-500 hover:bg-blue-50 rounded-lg transition-colors"
-                                        title="Export"
-                                        onClick={() => console.log('Export not implemented')}
+                                        title="Export to CSV"
+                                        onClick={() => exportMasterData(data, 'categories', [
+                                            { key: 'categoryName', header: 'Category Name' },
+                                            { key: '_count', header: 'Sub-Categories Count' },
+                                            { key: 'createdAt', header: 'Created At' },
+                                        ])}
                                     >
                                         <Download className="w-5 h-5" />
                                     </button>
                                 </div>
                                 <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">S.NO</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">CATEGORY NAME</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">SUB-CATEGORIES</th>
-                                            <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">ACTION</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {loading ? (
+                                    <table className="w-full">
+                                        <thead className="bg-gray-50 border-b border-gray-200">
                                             <tr>
-                                                <td colSpan={4} className="px-4 py-8 text-center text-gray-500">Loading...</td>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">S.NO</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">CATEGORY NAME</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">SUB-CATEGORIES</th>
+                                                <th className="px-4 py-3 text-left text-xs font-semibold text-gray-700">ACTION</th>
                                             </tr>
-                                        ) : !data || data.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={4} className="px-4 py-8 text-center text-gray-500">No categories found</td>
-                                            </tr>
-                                        ) : (
-                                            data.map((item, index) => (
-                                                <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
-                                                    <td className="px-4 py-3 text-sm text-gray-700">{(currentPage - 1) * limit + index + 1}</td>
-                                                    <td className="px-4 py-3 text-sm text-gray-700">{item.categoryName}</td>
-                                                    <td className="px-4 py-3 text-sm text-gray-700">{item._count?.subCategories || 0}</td>
-                                                    <td className="px-4 py-3">
-                                                        <div className="flex gap-2">
-                                                            <button
-                                                                onClick={() => handleEdit(item)}
-                                                                className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors"
-                                                            >
-                                                                <Edit className="w-3 h-3" />
-                                                                Edit
-                                                            </button>
-                                                            <button
-                                                                onClick={() => handleDelete(item.id)}
-                                                                className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
-                                                            >
-                                                                <Trash2 className="w-3 h-3" />
-                                                                Delete
-                                                            </button>
-                                                        </div>
-                                                    </td>
+                                        </thead>
+                                        <tbody>
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan={4} className="px-4 py-8 text-center text-gray-500">Loading...</td>
                                                 </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
-
-                            {/* Pagination */}
-                            {!loading && data.length > 0 && (
-                                <div className="flex items-center justify-between px-4 py-3 border-t border-gray-200">
-                                    <div className="text-sm text-gray-700">
-                                        Showing {(currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, total)} of {total} entries
-                                    </div>
-                                    <div className="flex items-center gap-2">
-                                        <button
-                                            onClick={() => fetchData(currentPage - 1)}
-                                            disabled={currentPage === 1}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                            Previous
-                                        </button>
-                                        <span className="text-sm text-gray-700">Page {currentPage} of {totalPages}</span>
-                                        <button
-                                            onClick={() => fetchData(currentPage + 1)}
-                                            disabled={currentPage === totalPages}
-                                            className="flex items-center gap-1 px-3 py-1 text-sm font-medium text-gray-700 bg-white border border-gray-300 rounded-lg hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            Next
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
+                                            ) : !data || data.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={4} className="px-4 py-8 text-center text-gray-500">No categories found</td>
+                                                </tr>
+                                            ) : (
+                                                data.map((item, index) => (
+                                                    <tr key={item.id} className="border-b border-gray-100 hover:bg-gray-50">
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{(currentPage - 1) * limit + index + 1}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{item.categoryName}</td>
+                                                        <td className="px-4 py-3 text-sm text-gray-700">{item._count?.subCategories || 0}</td>
+                                                        <td className="px-4 py-3">
+                                                            <div className="flex gap-2">
+                                                                <button
+                                                                    onClick={() => handleEdit(item)}
+                                                                    className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-blue-500 rounded hover:bg-blue-600 transition-colors"
+                                                                >
+                                                                    <Edit className="w-3 h-3" />
+                                                                    Edit
+                                                                </button>
+                                                                <button
+                                                                    onClick={() => handleDelete(item.id)}
+                                                                    className="flex items-center gap-1 px-3 py-1 text-xs font-medium text-white bg-red-500 rounded hover:bg-red-600 transition-colors"
+                                                                >
+                                                                    <Trash2 className="w-3 h-3" />
+                                                                    Delete
+                                                                </button>
+                                                            </div>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
                                 </div>
-                            )}
+
+                                {/* Pagination */}
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    total={total}
+                                    limit={limit}
+                                    onPageChange={setCurrentPage}
+                                    loading={loading}
+                                />
                             </div>
                         </div>
                     </div>

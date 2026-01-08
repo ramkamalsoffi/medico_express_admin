@@ -35,9 +35,13 @@ export interface PaginatedDoctor {
 
 export const doctorApi = {
     getAll: async (page = 1, limit = 10, search = '', sortBy = ''): Promise<PaginatedDoctor> => {
-        const response = await apiClient.get('/doctors', {
-            params: { page, limit, search, sortBy }
-        });
+        const params: any = { page, limit };
+
+        // Only include search and sortBy if they have values
+        if (search) params.search = search;
+        if (sortBy) params.sortBy = sortBy;
+
+        const response = await apiClient.get('/doctors', { params });
         return response.data;
     },
 

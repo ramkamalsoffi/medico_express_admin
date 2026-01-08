@@ -82,5 +82,16 @@ export const customerApi = {
         link.click();
         link.remove();
         window.URL.revokeObjectURL(url);
+    },
+
+    uploadImage: async (id: string, file: File): Promise<Customer> => {
+        const formData = new FormData();
+        formData.append('image', file);
+        const response = await apiClient.post(`/customers/${id}/upload-image`, formData, {
+            headers: {
+                'Content-Type': 'multipart/form-data',
+            },
+        });
+        return response.data;
     }
 };
