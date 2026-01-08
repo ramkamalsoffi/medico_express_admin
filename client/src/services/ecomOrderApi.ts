@@ -87,7 +87,7 @@ export const ecomOrderApi = {
     },
 
     exportToExcel: async (): Promise<void> => {
-        const response = await apiClient.get('/ecom-orders/export', {
+        const response = await apiClient.get('/ecom-orders/export/data', {
             responseType: 'blob',
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));

@@ -1,5 +1,6 @@
-import { createContext, useContext, ReactNode } from 'react';
+import { createContext, useContext, ReactNode, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { jwtDecode } from 'jwt-decode';
 import { useLogin, useLogout, useProfile } from './useAuthQueries';
 import type { User, LoginCredentials } from '../types';
 
@@ -34,9 +35,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }
   };
 
+
+
   const logout = () => {
     logoutMutation.mutate(undefined, {
       onSuccess: () => {
+        localStorage.removeItem('token');
+        localStorage.removeItem('user');
         navigate('/login');
       },
       onError: () => {
@@ -47,6 +52,49 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       },
     });
   };
+
+  useEffect(() => {
+    const checkTokenExpiration = () => {
+      const token = localStorage.getItem('token');
+      if (token) {
+        try {
+          const decoded: any = jwtDecode(token);
+          const currentTime = Date.now() / 1000;
+
+          if (decoded.exp < currentTime) {
+            // Token expired immediately
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            navigate('/login');
+          } else {
+            // Set timer for remaining time
+            const timeUntilExpire = (decoded.exp - currentTime) * 1000;
+            const timer = setTimeout(() => {
+              // Token expired in background
+              localStorage.removeItem('token');
+              localStorage.removeItem('user');
+              navigate('/login');
+              // Optional: Show toast
+              // toast.error("Session expired") - need to import toast if we want
+            }, timeUntilExpire);
+            return timer;
+          }
+        } catch (error) {
+          // Invalid token
+          localStorage.removeItem('token');
+          localStorage.removeItem('user');
+          navigate('/login');
+        }
+      }
+      return null;
+    };
+
+    const timer = checkTokenExpiration();
+    return () => {
+      if (timer) clearTimeout(timer);
+    };
+  }, [navigate]);
+
 
   // Check if user is authenticated
   const isAuthenticated = !!localStorage.getItem('token') && !!user;

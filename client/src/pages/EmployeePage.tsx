@@ -2,9 +2,10 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import { Popover, Transition } from '@headlessui/react';
-import { Download, Plus, Search, Pencil, Trash2, X, ChevronLeft, ChevronRight, Filter } from 'lucide-react';
+import { Download, Plus, Search, Pencil, Trash2, X, Filter } from 'lucide-react';
 import { employeeApi, Employee, CreateEmployeeDto } from '../services/employeeApi';
 import apiClient from '../lib/axios';
+import Pagination from '../components/Pagination';
 
 function EmployeePage() {
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -12,6 +13,7 @@ function EmployeePage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [limit] = useState(10);
     const [showModal, setShowModal] = useState(false);
@@ -57,6 +59,7 @@ function EmployeePage() {
             const response = await employeeApi.getAll(page, limit, search, sort);
             setEmployees(response?.data || []);
             setTotalPages(response?.meta?.totalPages || 1);
+            setTotal(response?.meta?.total || 0);
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch employees', error);
@@ -235,94 +238,81 @@ function EmployeePage() {
                                     </button>
                                 </div>
                                 <div className="overflow-x-auto">
-                                <table className="w-full">
-                                    <thead className="bg-gray-50 border-b border-gray-200">
-                                        <tr>
-                                            {columns.map(col => (
-                                                <th key={col.key} className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
-                                                    {col.label}
+                                    <table className="w-full">
+                                        <thead className="bg-gray-50 border-b border-gray-200">
+                                            <tr>
+                                                {columns.map(col => (
+                                                    <th key={col.key} className="px-6 py-3 text-left text-xs font-semibold text-gray-700 uppercase tracking-wider whitespace-nowrap">
+                                                        {col.label}
+                                                    </th>
+                                                ))}
+                                                <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
+                                                    Actions
                                                 </th>
-                                            ))}
-                                            <th className="px-6 py-3 text-right text-xs font-semibold text-gray-700 uppercase tracking-wider">
-                                                Actions
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="divide-y divide-gray-200">
-                                        {loading ? (
-                                            <tr>
-                                                <td colSpan={columns.length + 1} className="px-6 py-4 text-center text-sm text-gray-500">
-                                                    Loading...
-                                                </td>
                                             </tr>
-                                        ) : !employees || employees.length === 0 ? (
-                                            <tr>
-                                                <td colSpan={columns.length + 1} className="px-6 py-4 text-center text-sm text-gray-500">
-                                                    No employees found
-                                                </td>
-                                            </tr>
-                                        ) : (
-                                            employees.map((employee) => (
-                                                <tr key={employee.id} className="hover:bg-gray-50">
-                                                    <td className="px-6 py-4 text-sm text-gray-900">{employee.name}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">{employee.branch?.name}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">{employee.designation}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">{employee.phone}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">{employee.email}</td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">
-                                                        {new Date(employee.dateOfJoin).toLocaleDateString()}
-                                                    </td>
-                                                    <td className="px-6 py-4 text-sm text-gray-500">{employee.department?.name}</td>
-                                                    <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
-                                                        <button
-                                                            onClick={() => handleEdit(employee)}
-                                                            className="text-blue-600 hover:text-blue-900 mr-3"
-                                                        >
-                                                            <Pencil className="w-4 h-4" />
-                                                        </button>
-                                                        <button
-                                                            onClick={() => {
-                                                                setDeleteId(employee.id);
-                                                                setShowDeleteModal(true);
-                                                            }}
-                                                            className="text-red-600 hover:text-red-900"
-                                                        >
-                                                            <Trash2 className="w-4 h-4" />
-                                                        </button>
+                                        </thead>
+                                        <tbody className="divide-y divide-gray-200">
+                                            {loading ? (
+                                                <tr>
+                                                    <td colSpan={columns.length + 1} className="px-6 py-4 text-center text-sm text-gray-500">
+                                                        Loading...
                                                     </td>
                                                 </tr>
-                                            ))
-                                        )}
-                                    </tbody>
-                                </table>
-                            </div>
+                                            ) : !employees || employees.length === 0 ? (
+                                                <tr>
+                                                    <td colSpan={columns.length + 1} className="px-6 py-4 text-center text-sm text-gray-500">
+                                                        No employees found
+                                                    </td>
+                                                </tr>
+                                            ) : (
+                                                employees.map((employee) => (
+                                                    <tr key={employee.id} className="hover:bg-gray-50">
+                                                        <td className="px-6 py-4 text-sm text-gray-900">{employee.name}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{employee.branch?.name}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{employee.designation}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{employee.phone}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{employee.email}</td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">
+                                                            {new Date(employee.dateOfJoin).toLocaleDateString()}
+                                                        </td>
+                                                        <td className="px-6 py-4 text-sm text-gray-500">{employee.department?.name}</td>
+                                                        <td className="px-6 py-4 text-right text-sm font-medium whitespace-nowrap">
+                                                            <button
+                                                                onClick={() => handleEdit(employee)}
+                                                                className="text-blue-600 hover:text-blue-900 mr-3"
+                                                            >
+                                                                <Pencil className="w-4 h-4" />
+                                                            </button>
+                                                            <button
+                                                                onClick={() => {
+                                                                    setDeleteId(employee.id);
+                                                                    setShowDeleteModal(true);
+                                                                }}
+                                                                className="text-red-600 hover:text-red-900"
+                                                            >
+                                                                <Trash2 className="w-4 h-4" />
+                                                            </button>
+                                                        </td>
+                                                    </tr>
+                                                ))
+                                            )}
+                                        </tbody>
+                                    </table>
+                                </div>
 
-                            {/* Pagination */}
-                            <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
-                                <div className="text-sm text-gray-700">
-                                    Page {currentPage} of {totalPages}
-                                </div>
-                                <div className="flex gap-2">
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                        disabled={currentPage === 1}
-                                        className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <ChevronLeft className="w-4 h-4" />
-                                    </button>
-                                    <button
-                                        onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                        disabled={currentPage === totalPages}
-                                        className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                    >
-                                        <ChevronRight className="w-4 h-4" />
-                                    </button>
-                                </div>
-                            </div>
-                            
-                                </div>
+                                {/* Pagination */}
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    total={total}
+                                    limit={limit}
+                                    onPageChange={setCurrentPage}
+                                    loading={loading}
+                                />
+
                             </div>
                         </div>
+                    </div>
 
                 </main>
             </div>

@@ -50,6 +50,8 @@ export interface SalesReport {
     email3: string;
     deliveryMode: string;
     transportor: string;
+    orderStatus?: string;
+    deliveryStatus?: string;
     createdAt?: string;
     updatedAt?: string;
 }
@@ -103,9 +105,11 @@ export interface CreateSalesReportDto {
     email3: string;
     deliveryMode: string;
     transportor: string;
+    orderStatus?: string;
+    deliveryStatus?: string;
 }
 
-export interface UpdateSalesReportDto extends Partial<CreateSalesReportDto> {}
+export interface UpdateSalesReportDto extends Partial<CreateSalesReportDto> { }
 
 export interface PaginatedSalesReports {
     data: SalesReport[];
@@ -131,7 +135,7 @@ export const salesReportsApi = {
         if (startDate) params.startDate = startDate;
         if (endDate) params.endDate = endDate;
         if (sortBy) params.sortBy = sortBy;
-        
+
         const response = await apiClient.get('/sales-reports', { params });
         return response.data;
     },

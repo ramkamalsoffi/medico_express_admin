@@ -15,7 +15,7 @@ export interface CreateHSNDto {
     gstRate?: number;
 }
 
-export interface UpdateHSNDto extends Partial<CreateHSNDto> {}
+export interface UpdateHSNDto extends Partial<CreateHSNDto> { }
 
 export interface PaginatedHSN {
     data: HSNMaster[];
@@ -50,7 +50,7 @@ const hsnApi = {
     },
 
     update: async (id: string, data: UpdateHSNDto): Promise<HSNMaster> => {
-        const response = await apiClient.put<HSNMaster>(`/hsn-master/${id}`, data);
+        const response = await apiClient.patch<HSNMaster>(`/hsn-master/${id}`, data);
         return response.data;
     },
 
@@ -61,7 +61,7 @@ const hsnApi = {
     uploadExcel: async (file: File): Promise<any> => {
         const formData = new FormData();
         formData.append('file', file);
-        
+
         const response = await apiClient.post('/hsn-master/import-excel', formData, {
             headers: {
                 'Content-Type': 'multipart/form-data',

@@ -1,9 +1,10 @@
 import { useState, useEffect, useCallback, Fragment } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import { Download, Plus, Search, Pencil, Trash2, Eye, X, ChevronLeft, ChevronRight, Phone, Mail, Filter } from 'lucide-react';
+import { Download, Plus, Search, Pencil, Trash2, Eye, X, Phone, Mail, Filter } from 'lucide-react';
 import { companyApi, Company, CreateCompanyDto } from '../services/companyApi';
 import { Popover, Transition } from '@headlessui/react';
+import Pagination from '../components/Pagination';
 
 function ProfilePage() {
     const [companies, setCompanies] = useState<Company[]>([]);
@@ -327,41 +328,14 @@ function ProfilePage() {
                                     </table>
                                 </div>
                                 {/* Pagination */}
-                                <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
-                                    <div className="text-sm text-gray-700">
-                                        Showing {totalItems === 0 ? 0 : (currentPage - 1) * limit + 1} to {Math.min(currentPage * limit, totalItems)} of {totalItems} entries
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                            disabled={currentPage === 1}
-                                            className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <div className="flex items-center gap-1">
-                                            {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                                                <button
-                                                    key={pageNum}
-                                                    onClick={() => setCurrentPage(pageNum)}
-                                                    className={`px-3 py-1 text-sm rounded-lg border transition-colors ${currentPage === pageNum
-                                                            ? 'bg-blue-500 text-white border-blue-500'
-                                                            : 'bg-white text-gray-700 border-gray-300 hover:bg-gray-50'
-                                                        }`}
-                                                >
-                                                    {pageNum}
-                                                </button>
-                                            ))}
-                                        </div>
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    total={totalItems}
+                                    limit={limit}
+                                    onPageChange={setCurrentPage}
+                                    loading={loading}
+                                />
                             </div>
                         </div>
                     </div>

@@ -15,7 +15,7 @@ export interface CreatePackingDto {
     qtyPack: string;
 }
 
-export interface UpdatePackingDto extends Partial<CreatePackingDto> {}
+export interface UpdatePackingDto extends Partial<CreatePackingDto> { }
 
 export interface PaginatedPackings {
     data: Packing[];
@@ -58,7 +58,7 @@ const packingApi = {
 
     // Update packing
     update: async (id: string, data: UpdatePackingDto): Promise<Packing> => {
-        const response = await apiClient.put<Packing>(`/packings/${id}`, data);
+        const response = await apiClient.patch<Packing>(`/packings/${id}`, data);
         return response.data;
     },
 

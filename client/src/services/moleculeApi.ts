@@ -11,7 +11,7 @@ export interface CreateMoleculeDto {
     moleculeName: string;
 }
 
-export interface UpdateMoleculeDto extends Partial<CreateMoleculeDto> {}
+export interface UpdateMoleculeDto extends Partial<CreateMoleculeDto> { }
 
 export interface PaginatedMolecules {
     data: Molecule[];
@@ -54,7 +54,7 @@ const moleculeApi = {
 
     // Update molecule
     update: async (id: string, data: UpdateMoleculeDto): Promise<Molecule> => {
-        const response = await apiClient.put<Molecule>(`/molecules/${id}`, data);
+        const response = await apiClient.patch<Molecule>(`/molecules/${id}`, data);
         return response.data;
     },
 

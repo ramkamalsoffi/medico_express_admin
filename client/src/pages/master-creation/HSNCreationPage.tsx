@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import Header from '../../components/Header';
 import Sidebar from '../../components/Sidebar';
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Upload, FileSpreadsheet, Filter, Search, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Upload, FileSpreadsheet, Filter, Search, Download } from 'lucide-react';
 import { Popover, Transition } from '@headlessui/react';
 import { Fragment } from 'react';
 import hsnApi, { HSNMaster, CreateHSNDto } from '../../services/hsnApi';

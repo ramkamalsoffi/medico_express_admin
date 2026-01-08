@@ -2,8 +2,9 @@ import { useState, useEffect, useCallback, Fragment } from 'react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import { Popover, Transition } from '@headlessui/react';
-import { Download, Plus, Search, Pencil, Trash2, X, Filter, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
+import { Download, Plus, Search, Pencil, Trash2, X, Filter, Eye } from 'lucide-react';
 import { doctorApi, Doctor, CreateDoctorDto } from '../services/doctorApi';
+import Pagination from '../components/Pagination';
 
 function DoctorsPage() {
     const [doctors, setDoctors] = useState<Doctor[]>([]);
@@ -11,6 +12,7 @@ function DoctorsPage() {
     const [searchTerm, setSearchTerm] = useState('');
     const [sortBy, setSortBy] = useState('');
     const [totalPages, setTotalPages] = useState(1);
+    const [total, setTotal] = useState(0);
     const [currentPage, setCurrentPage] = useState(1);
     const [limit] = useState(10);
 
@@ -39,6 +41,7 @@ function DoctorsPage() {
             const response = await doctorApi.getAll(page, limit, search, sort);
             setDoctors(response?.data || []);
             setTotalPages(response?.meta?.totalPages || 1);
+            setTotal(response?.meta?.total || 0);
             setLoading(false);
         } catch (error) {
             console.error('Failed to fetch doctors', error);
@@ -286,27 +289,14 @@ function DoctorsPage() {
                                 </div>
 
                                 {/* Pagination */}
-                                <div className="flex items-center justify-between px-6 py-3 border-t border-gray-200 bg-gray-50">
-                                    <div className="text-sm text-gray-700">
-                                        Page {currentPage} of {totalPages}
-                                    </div>
-                                    <div className="flex gap-2">
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.max(1, p - 1))}
-                                            disabled={currentPage === 1}
-                                            className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronLeft className="w-4 h-4" />
-                                        </button>
-                                        <button
-                                            onClick={() => setCurrentPage(p => Math.min(totalPages, p + 1))}
-                                            disabled={currentPage === totalPages}
-                                            className="p-2 border border-gray-300 rounded-lg hover:bg-white disabled:opacity-50 disabled:cursor-not-allowed"
-                                        >
-                                            <ChevronRight className="w-4 h-4" />
-                                        </button>
-                                    </div>
-                                </div>
+                                <Pagination
+                                    currentPage={currentPage}
+                                    totalPages={totalPages}
+                                    total={total}
+                                    limit={limit}
+                                    onPageChange={setCurrentPage}
+                                    loading={loading}
+                                />
 
                             </div>
                         </div>

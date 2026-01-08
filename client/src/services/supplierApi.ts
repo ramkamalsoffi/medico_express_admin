@@ -72,7 +72,7 @@ const supplierApi = {
     },
 
     exportToExcel: async (): Promise<void> => {
-        const response = await apiClient.get('/suppliers/export', {
+        const response = await apiClient.get('/suppliers/export/data', {
             responseType: 'blob',
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));

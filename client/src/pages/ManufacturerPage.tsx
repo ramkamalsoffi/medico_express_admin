@@ -2,8 +2,9 @@ import React, { useState, useEffect, Fragment } from 'react';
 import { Popover, Transition } from '@headlessui/react';
 import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
-import { Download, Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Search, Filter, Eye } from 'lucide-react';
+import { Download, Plus, Edit, Trash2, X, Search, Filter, Eye } from 'lucide-react';
 import manufacturerApi, { Manufacturer, CreateManufacturerDto } from '../services/manufacturerApi';
+import Pagination from '../components/Pagination';
 
 function ManufacturerPage() {
     // Data State
@@ -304,32 +305,14 @@ function ManufacturerPage() {
 
 
                                 {/* Pagination */}
-                                {!loading && total > 0 && (
-                                    <div className="px-4 py-3 border-t border-gray-200 flex items-center justify-between">
-                                        <div className="text-sm text-gray-500">
-                                            Showing {((page - 1) * limit) + 1} to {Math.min(page * limit, total)} of {total} entries
-                                        </div>
-                                        <div className="flex items-center gap-2">
-                                            <button
-                                                onClick={() => setPage(p => Math.max(1, p - 1))}
-                                                disabled={page === 1}
-                                                className="p-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <ChevronLeft className="w-4 h-4" />
-                                            </button>
-                                            <span className="text-sm font-medium text-gray-700">
-                                                Page {page} of {totalPages}
-                                            </span>
-                                            <button
-                                                onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                                disabled={page === totalPages}
-                                                className="p-1 border border-gray-300 rounded hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
-                                            >
-                                                <ChevronRight className="w-4 h-4" />
-                                            </button>
-                                        </div>
-                                    </div>
-                                )}
+                                <Pagination
+                                    currentPage={page}
+                                    totalPages={totalPages}
+                                    total={total}
+                                    limit={limit}
+                                    onPageChange={setPage}
+                                    loading={loading}
+                                />
                             </div>
                         </div>
                     </div>

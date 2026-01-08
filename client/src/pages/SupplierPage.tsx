@@ -4,15 +4,18 @@ import Header from '../components/Header';
 import Sidebar from '../components/Sidebar';
 import ViewSupplierModal from '../components/ViewSupplierModal';
 import EditSupplierModal from '../components/EditSupplierModal';
-import { Download, Plus, Eye, Edit2, Trash2, ChevronLeft, ChevronRight, Filter, Search } from 'lucide-react';
+import { Download, Plus, Eye, Edit2, Trash2, Filter, Search } from 'lucide-react';
 import { useSuppliers, useDeleteSupplier } from '../hooks/useSuppliers';
 import supplierApi from '../services/supplierApi';
 import { Popover, Transition } from '@headlessui/react';
+import Pagination from '../components/Pagination';
+import MultiSelectFilter from '../components/ui/MultiSelectFilter';
 
 function SupplierPage() {
     const navigate = useNavigate();
     const [page, setPage] = useState(1);
     const [limit] = useState(10);
+    const [selectedStatuses, setSelectedStatuses] = useState<string[]>([]);
 
     // Filter & Search States
     const [search, setSearch] = useState('');
@@ -106,7 +109,7 @@ function SupplierPage() {
                             <div className="p-6">
                                 <div className="flex items-center justify-between mb-4">
                                     <div className="flex items-center gap-2">
-                                        {/* Filter Popover */}
+                                        {/* Filter Popover - Sort By */}
                                         <Popover className="relative">
                                             <Popover.Button className="p-2 border border-blue-500 rounded-lg text-blue-500 hover:bg-blue-50 transition-colors focus:outline-none focus:ring-2 focus:ring-blue-200">
                                                 <Filter className="w-5 h-5" />
@@ -120,8 +123,8 @@ function SupplierPage() {
                                                 leaveFrom="opacity-100 translate-y-0"
                                                 leaveTo="opacity-0 translate-y-1"
                                             >
-                                                <Popover.Panel className="absolute left-0 z-10 mt-2 w-48 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none">
-                                                    <div className="p-4 space-y-4">
+                                                <Popover.Panel className="absolute left-0 z-50 mt-2 w-64 origin-top-left rounded-md bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none p-4">
+                                                    <div className="space-y-4">
                                                         <div>
                                                             <h4 className="text-xs font-semibold text-gray-500 uppercase tracking-wider mb-2">Sort By</h4>
                                                             <div className="space-y-2">
@@ -129,11 +132,11 @@ function SupplierPage() {
                                                                     <input
                                                                         type="radio"
                                                                         name="sort"
-                                                                        checked={sortBy === 'name_asc' || sortBy === 'name_desc' ? false : true}
+                                                                        checked={!sortBy}
                                                                         onChange={() => setSortBy('')}
                                                                         className="text-blue-600 focus:ring-blue-500"
                                                                     />
-                                                                    Default (Newest First)
+                                                                    Default (Newest)
                                                                 </label>
                                                                 <label className="flex items-center gap-2 text-sm text-gray-700 cursor-pointer">
                                                                     <input
@@ -157,6 +160,18 @@ function SupplierPage() {
                                                                 </label>
                                                             </div>
                                                         </div>
+
+                                                        {/* Example MultiSelect Filter */}
+                                                        <MultiSelectFilter
+                                                            label="Status"
+                                                            options={[
+                                                                { id: '1', label: 'Active', value: 'active' },
+                                                                { id: '2', label: 'Inactive', value: 'inactive' },
+                                                                { id: '3', label: 'Pending', value: 'pending' }
+                                                            ]}
+                                                            selectedValues={selectedStatuses}
+                                                            onChange={setSelectedStatuses}
+                                                        />
                                                     </div>
                                                 </Popover.Panel>
                                             </Transition>
@@ -267,44 +282,14 @@ function SupplierPage() {
                                         </div>
 
                                         {/* Pagination */}
-                                        <div className="flex items-center justify-between mt-4 pt-4 border-t border-gray-200">
-                                            <div className="text-sm text-gray-600">
-                                                Showing {suppliers.length === 0 ? 0 : ((page - 1) * limit) + 1} to {Math.min(page * limit, data?.meta?.total || 0)} of {data?.meta?.total || 0} entries
-                                            </div>
-                                            <div className="flex items-center gap-2">
-                                                <button
-                                                    onClick={() => setPage(p => Math.max(1, p - 1))}
-                                                    disabled={page === 1}
-                                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                                >
-                                                    <ChevronLeft className="w-5 h-5" />
-                                                </button>
-
-                                                {/* Page Numbers */}
-                                                <div className="flex items-center gap-1">
-                                                    {Array.from({ length: totalPages }, (_, i) => i + 1).map(pageNum => (
-                                                        <button
-                                                            key={pageNum}
-                                                            onClick={() => setPage(pageNum)}
-                                                            className={`px-3 py-1.5 text-sm rounded transition-colors ${page === pageNum
-                                                                    ? 'bg-blue-500 text-white font-semibold'
-                                                                    : 'text-gray-600 hover:bg-gray-100'
-                                                                }`}
-                                                        >
-                                                            {pageNum}
-                                                        </button>
-                                                    ))}
-                                                </div>
-
-                                                <button
-                                                    onClick={() => setPage(p => Math.min(totalPages, p + 1))}
-                                                    disabled={page === totalPages}
-                                                    className="p-2 text-gray-600 hover:bg-gray-100 rounded disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
-                                                >
-                                                    <ChevronRight className="w-5 h-5" />
-                                                </button>
-                                            </div>
-                                        </div>
+                                        <Pagination
+                                            currentPage={page}
+                                            totalPages={totalPages}
+                                            total={data?.meta?.total || 0}
+                                            limit={limit}
+                                            onPageChange={setPage}
+                                            loading={isLoading}
+                                        />
                                     </>
                                 )}
                             </div>

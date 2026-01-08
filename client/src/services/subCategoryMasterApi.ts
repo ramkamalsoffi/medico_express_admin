@@ -14,7 +14,7 @@ export interface CreateSubCategoryMasterDto {
     categoryId?: string;
 }
 
-export interface UpdateSubCategoryMasterDto extends Partial<CreateSubCategoryMasterDto> {}
+export interface UpdateSubCategoryMasterDto extends Partial<CreateSubCategoryMasterDto> { }
 
 export interface PaginatedSubCategories {
     data: SubCategoryMaster[];
@@ -49,7 +49,7 @@ const subCategoryMasterApi = {
     },
 
     update: async (id: string, data: UpdateSubCategoryMasterDto): Promise<SubCategoryMaster> => {
-        const response = await apiClient.put<SubCategoryMaster>(`/sub-category-master/${id}`, data);
+        const response = await apiClient.patch<SubCategoryMaster>(`/sub-category-master/${id}`, data);
         return response.data;
     },
 

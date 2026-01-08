@@ -14,13 +14,13 @@ export interface Product {
     unitId?: string;
     description?: string;
     molecules?: string;
-    
+
     // Relations
     manufacturer?: { name: string };
     category?: { name: string };
     brand?: { name: string };
     unit?: { name: string };
-    
+
     createdAt?: string;
 }
 
@@ -39,7 +39,7 @@ export interface CreateProductDto {
     molecules?: string;
 }
 
-export interface UpdateProductDto extends Partial<CreateProductDto> {}
+export interface UpdateProductDto extends Partial<CreateProductDto> { }
 
 export interface PaginatedProduct {
     data: Product[];
@@ -79,7 +79,7 @@ export const productApi = {
     },
 
     exportToExcel: async (): Promise<void> => {
-        const response = await apiClient.get('/products/export', {
+        const response = await apiClient.get('/products/export/data', {
             responseType: 'blob',
         });
         const url = window.URL.createObjectURL(new Blob([response.data]));

@@ -1,7 +1,7 @@
 import React, { useState, useEffect, Fragment } from 'react';
 import Header from '../../components/Header';
 import Sidebar from '../../components/Sidebar';
-import { Plus, Edit, Trash2, ChevronLeft, ChevronRight, X, Search, Filter, Download } from 'lucide-react';
+import { Plus, Edit, Trash2, X, Search, Filter, Download } from 'lucide-react';
 import { Popover, Transition } from '@headlessui/react';
 import subCategoryMasterApi, { SubCategoryMaster, CreateSubCategoryMasterDto } from '../../services/subCategoryMasterApi';
 import categoryMasterApi, { CategoryMaster } from '../../services/categoryMasterApi';

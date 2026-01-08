@@ -12,7 +12,7 @@ export interface CreateCategoryMasterDto {
     categoryName: string;
 }
 
-export interface UpdateCategoryMasterDto extends Partial<CreateCategoryMasterDto> {}
+export interface UpdateCategoryMasterDto extends Partial<CreateCategoryMasterDto> { }
 
 export interface PaginatedCategories {
     data: CategoryMaster[];
@@ -47,7 +47,7 @@ const categoryMasterApi = {
     },
 
     update: async (id: string, data: UpdateCategoryMasterDto): Promise<CategoryMaster> => {
-        const response = await apiClient.put<CategoryMaster>(`/category-master/${id}`, data);
+        const response = await apiClient.patch<CategoryMaster>(`/category-master/${id}`, data);
         return response.data;
     },
 

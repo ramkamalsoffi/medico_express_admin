@@ -35,7 +35,7 @@ function ReportsPage() {
         goodsValue2: 0, tax2: '0%', frightCharges: 0, tax3: '0%',
         insurance: 'No', discount2: '0%', roundedOff: '0%', total: 0,
         deliveryAddress2: '', name: '', phoneNo3: '', email3: '',
-        deliveryMode: 'Road', transportor: 'No'
+        deliveryMode: 'Road', transportor: 'No', orderStatus: 'Pending', deliveryStatus: 'Pending'
     };
     const [formData, setFormData] = useState<CreateSalesReportDto>(initialForm);
 
@@ -308,10 +308,18 @@ function ReportsPage() {
                                                         <td className="px-3 py-3 text-xs text-gray-700">{report.email3}</td>
                                                         <td className="px-3 py-3 text-xs text-gray-700">{report.deliveryMode}</td>
                                                         <td className="px-3 py-3 text-xs text-gray-700">{report.transportor}</td>
-                                                        <td className="px-3 py-3 text-center">
-                                                            <button onClick={() => handleView(report.id)} className="text-gray-600 hover:text-gray-900">
-                                                                <Eye className="w-4 h-4" />
-                                                            </button>
+                                                        <td className="px-3 py-3 text-center whitespace-nowrap">
+                                                            <div className="flex items-center justify-center gap-2">
+                                                                <button onClick={() => handleView(report.id)} className="text-gray-600 hover:text-gray-900" title="View">
+                                                                    <Eye className="w-4 h-4" />
+                                                                </button>
+                                                                <button onClick={() => { setFormData(report); setEditingId(report.id); setShowModal(true); }} className="text-blue-600 hover:text-blue-900" title="Edit">
+                                                                    <Pencil className="w-4 h-4" />
+                                                                </button>
+                                                                <button onClick={() => { setDeleteId(report.id); setShowDeleteModal(true); }} className="text-red-600 hover:text-red-900" title="Delete">
+                                                                    <Trash2 className="w-4 h-4" />
+                                                                </button>
+                                                            </div>
                                                         </td>
                                                     </tr>
                                                 ))
